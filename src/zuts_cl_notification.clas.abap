@@ -20,7 +20,7 @@ CLASS zuts_cl_notification DEFINITION
         !iv_langu TYPE syst_langu .
     METHODS get_delivery_data
       IMPORTING
-        !iv_vbeln TYPE vbeln_vl
+        !iv_vbeln         TYPE vbeln_vl
       RETURNING
         VALUE(rv_retcode) TYPE sy-subrc .
     METHODS build_data_output_ztro .
@@ -34,7 +34,7 @@ CLASS zuts_cl_notification DEFINITION
     METHODS return_message .
     CLASS-METHODS check_output_routine
       IMPORTING
-        !iv_wbstk TYPE wbstk
+        !iv_wbstk       TYPE wbstk
       RETURNING
         VALUE(rv_subrc) TYPE syst_subrc .
 
@@ -84,45 +84,43 @@ CLASS zuts_cl_notification DEFINITION
 
     DATA lv_pstyv TYPE pstyv .
     DATA lt_allowed_pstyv TYPE tt_pstyv .
+    DATA ls_allowed_pstyv TYPE ty_pstyv .
     DATA gt_ctry TYPE tt_ctry .
     DATA gt_material TYPE tt_material .
     DATA gt_mch1 TYPE tt_mch1 .
     DATA gt_serial TYPE tt_serial .
     DATA gt_text TYPE truxs_t_text_data .
     DATA it_lips TYPE tt_lips .
-    CLASS-DATA lt_characteristics TYPE zmm_tt_characteristic .
-    CLASS-DATA lt_ce_mark TYPE zsms_tt_spec_characteristics .
+    CLASS-DATA lt_characteristics TYPE zuts_tt_characteristic .
+    CLASS-DATA lt_ce_mark TYPE zuts_tt_spec_characteristics .
     CONSTANTS c_fname_sales TYPE string VALUE 'Sales_Notif-' ##NO_TEXT.
     CONSTANTS c_fname_import TYPE string VALUE 'Import_Notif-' ##NO_TEXT.
     CONSTANTS c_csv TYPE string VALUE '.csv' ##NO_TEXT.
     CONSTANTS c_char_inf TYPE string VALUE 'ZRG_REGULATORY_INF' ##NO_TEXT.
     CONSTANTS c_char_mark TYPE string VALUE 'ZS_REGULATIONS_CE_MARK ' ##NO_TEXT.
     CONSTANTS c_char_code TYPE string VALUE 'ZSD_CODE2' ##NO_TEXT.
-    CONSTANTS c_uts_foc TYPE zparameter VALUE 'ZSD_UTS_FOC_DELITEM' ##NO_TEXT.
+    CONSTANTS c_uts_foc TYPE string VALUE 'ZSD_UTS_FOC_DELITEM' ##NO_TEXT.  " İtem catagory kontrolü için eklenmiş
+    "ZEXP,TANN,ZWAR gelmiş ve , ile ayırıp itaba atmış
 
     METHODS add_header_data_ztro .
     METHODS add_header_data_ztri .
     METHODS convert_to_csv_format
       IMPORTING
-        !iv_output TYPE STANDARD TABLE
+        !iv_output     TYPE STANDARD TABLE
       RETURNING
         VALUE(rv_conv) TYPE truxs_t_text_data .
     CLASS-METHODS check_material
       IMPORTING
-        !iv_delivery TYPE vbeln_vl
+        !iv_delivery              TYPE vbeln_vl
       RETURNING
         VALUE(rv_renew_materials) TYPE flagd .
 ENDCLASS.
 
 
 
-CLASS zuts_cl_notification IMPLEMENTATION.
+CLASS ZUTS_CL_NOTIFICATION IMPLEMENTATION.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Private Method ZUTS_CL_NOTIFICATION->ADD_HEADER_DATA_ZTRI
-* +-------------------------------------------------------------------------------------------------+
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD add_header_data_ztri.
 
     gt_output = VALUE #( BASE gt_output
@@ -137,18 +135,14 @@ CLASS zuts_cl_notification IMPLEMENTATION.
                            ctryname   = 'IEU'(ieu)
                            ctryorigin = 'MEU'(meu)
                            vbeln      = 'GBN'(gbn)
-                           meins      = text-009
-                           maktx      = text-001
-                           stcd1      = text-014
-                           lifnr      = text-015 )
+                           meins      = TEXT-009
+                           maktx      = TEXT-001
+                           stcd1      = TEXT-014
+                           lifnr      = TEXT-015 )
                        ).
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Private Method ZUTS_CL_NOTIFICATION->ADD_HEADER_DATA_ZTRO
-* +-------------------------------------------------------------------------------------------------+
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD add_header_data_ztro.
 
     gt_outsales = VALUE #( BASE gt_outsales
@@ -158,20 +152,16 @@ CLASS zuts_cl_notification IMPLEMENTATION.
                              lgmng     = 'ADT'(adt)
                              zuts_code = 'KUN'(kun)
                              zben      = 'BEN'(ben)
-                             vbeln     = text-013
-                             wadat_ist = text-007
-                             matnr     = text-002
-                             meins     = text-009
-                             maktx     = text-001 )
+                             vbeln     = TEXT-013
+                             wadat_ist = TEXT-007
+                             matnr     = TEXT-002
+                             meins     = TEXT-009
+                             maktx     = TEXT-001 )
                          ).
 
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Public Method ZUTS_CL_NOTIFICATION->BUILD_DATA_OUTPUT_ZTRI
-* +-------------------------------------------------------------------------------------------------+
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD build_data_output_ztri.
 
     "add_header_data_ztri( ).
@@ -219,26 +209,23 @@ CLASS zuts_cl_notification IMPLEMENTATION.
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Public Method ZUTS_CL_NOTIFICATION->BUILD_DATA_OUTPUT_ZTRO
-* +-------------------------------------------------------------------------------------------------+
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD build_data_output_ztro.
 
     "add_header_data_ztro( ).
 
-    TRY.
-        zcl_global_variables=>get_parameter_table(
-          EXPORTING iv_name  = c_uts_foc
-          IMPORTING et_param = lt_allowed_pstyv ).
+*    TRY.
+*        zcl_global_variables=>get_parameter_table(
+*          EXPORTING iv_name  = c_uts_foc
+*          IMPORTING et_param = lt_allowed_pstyv ).
+*        data(lt_allowed_pstyv) = VALUE #( pstyv = 'TANN' ).
+*        LOOP AT lt_allowed_pstyv ASSIGNING FIELD-SYMBOL(<fs_pstyv>).
+*          CONDENSE <fs_pstyv>.
+*        ENDLOOP.
 
-        LOOP AT lt_allowed_pstyv ASSIGNING FIELD-SYMBOL(<fs_pstyv>).
-          CONDENSE <fs_pstyv>.
-        ENDLOOP.
-
-      CATCH zcx_global.
-    ENDTRY.
-
+*      CATCH zcx_global.
+*    ENDTRY.
+    ls_allowed_pstyv-pstyv = 'TANN'.
+    APPEND ls_allowed_pstyv to lt_allowed_pstyv.
     SELECT SINGLE a~atwrt
       INTO @DATA(lv_stceg)
       FROM ausp AS a
@@ -297,64 +284,66 @@ CLASS zuts_cl_notification IMPLEMENTATION.
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Static Private Method ZUTS_CL_NOTIFICATION=>CHECK_MATERIAL
-* +-------------------------------------------------------------------------------------------------+
-* | [--->] IV_DELIVERY                    TYPE        VBELN_VL
-* | [<-()] RV_RENEW_MATERIALS             TYPE        FLAGD
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD check_material.
-    CLEAR: rv_renew_materials, lt_characteristics, lt_ce_mark.
-
-    IF iv_delivery IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    "Get all the Delivery Items for the Delivery
-    DATA(lt_dlvry_mats) = zcl_sms_prep_and_retrieve_spec=>get_delivery_items(
-           iv_delivery = iv_delivery ).
-
-    IF lt_dlvry_mats[] IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    "Prepare the Materials and the Vendors
-    DATA(lt_material_vendor) = zcl_sms_prep_and_retrieve_spec=>prepare_material_list(
-         it_delvry_materials = lt_dlvry_mats ).
-
-    "Required Characteristics
-
-*-- Loading the Characteristics required from Spec Management
-    APPEND INITIAL LINE TO lt_characteristics ASSIGNING FIELD-SYMBOL(<ls_chars0>).
-    <ls_chars0>-atnam = c_char_inf.
-
-    APPEND INITIAL LINE TO lt_characteristics ASSIGNING FIELD-SYMBOL(<ls_chars1>).
-    <ls_chars1>-atnam = c_char_mark.
-
-    "Returns all the Spec characteristics requested per Material
-    DATA(lt_spec_chars) = zcl_sms_get_material_chars=>main(
-     it_matnr_lifnr     = lt_material_vendor
-     it_characteristics  = lt_characteristics ).
-
-    "Are there any CE marked entries
-    lt_ce_mark = lt_spec_chars[].
-    DELETE lt_ce_mark WHERE atnam NE c_char_inf AND
-                            atnam NE c_char_mark.
-    DELETE lt_ce_mark WHERE atwrt NE 'YES'.
-
-    IF lt_ce_mark[] IS NOT INITIAL.
-      "There are CE marked entries
-      rv_renew_materials = abap_true.
-    ENDIF.
+*    CLEAR: rv_renew_materials, lt_characteristics, lt_ce_mark.
+*
+*    IF iv_delivery IS INITIAL.
+*      RETURN.
+*    ENDIF.
+*
+*    "Get all the Delivery Items for the Delivery
+**    DATA(lt_dlvry_mats) = zcl_sms_prep_and_retrieve_spec=>get_delivery_items(
+**           iv_delivery = iv_delivery ).
+*
+*    CLEAR: rt_materials.
+*
+**-- Get all the Delivery Items for the Delivery
+*    SELECT matnr
+*      FROM lips
+*      INTO TABLE @DATA(lt_dlvry_mats)
+*     WHERE vbeln = @iv_delivery.
+*
+*    IF sy-subrc = 0.
+*      SORT lt_lips BY matnr.
+*      DELETE ADJACENT DUPLICATES FROM lt_dlvry_mats COMPARING ALL FIELDS.
+**      rt_materials[] = lt_lips[].
+*    ENDIF.
+*
+*    IF lt_dlvry_mats[] IS INITIAL.
+*      RETURN.
+*    ENDIF.
+*
+*    "Prepare the Materials and the Vendors
+*    DATA(lt_material_vendor) = zcl_sms_prep_and_retrieve_spec=>prepare_material_list(
+*         it_delvry_materials = lt_dlvry_mats ).
+*
+*    "Required Characteristics
+*
+**-- Loading the Characteristics required from Spec Management
+*    APPEND INITIAL LINE TO lt_characteristics ASSIGNING FIELD-SYMBOL(<ls_chars0>).
+*    <ls_chars0>-atnam = c_char_inf.
+*
+*    APPEND INITIAL LINE TO lt_characteristics ASSIGNING FIELD-SYMBOL(<ls_chars1>).
+*    <ls_chars1>-atnam = c_char_mark.
+*
+*    "Returns all the Spec characteristics requested per Material
+*    DATA(lt_spec_chars) = zcl_sms_get_material_chars=>main(
+*     it_matnr_lifnr     = lt_material_vendor
+*     it_characteristics  = lt_characteristics ).
+*
+*    "Are there any CE marked entries
+*    lt_ce_mark = lt_spec_chars[].
+*    DELETE lt_ce_mark WHERE atnam NE c_char_inf AND
+*                            atnam NE c_char_mark.
+*    DELETE lt_ce_mark WHERE atwrt NE 'YES'.
+*
+*    IF lt_ce_mark[] IS NOT INITIAL.
+*      "There are CE marked entries
+*      rv_renew_materials = abap_true.
+*    ENDIF.
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Static Public Method ZUTS_CL_NOTIFICATION=>CHECK_OUTPUT_ROUTINE
-* +-------------------------------------------------------------------------------------------------+
-* | [--->] IV_WBSTK                       TYPE        WBSTK
-* | [<-()] RV_SUBRC                       TYPE        SYST_SUBRC
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD check_output_routine.
 * Check Qty is GT 0 for alteast one line and PGI is done
     FIELD-SYMBOLS: <lt_lips_t> TYPE tab_lipsvb,
@@ -418,30 +407,15 @@ CLASS zuts_cl_notification IMPLEMENTATION.
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Static Public Method ZUTS_CL_NOTIFICATION=>CLASS_CONSTRUCTOR
-* +-------------------------------------------------------------------------------------------------+
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD class_constructor.
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Public Method ZUTS_CL_NOTIFICATION->CONSTRUCTOR
-* +-------------------------------------------------------------------------------------------------+
-* | [--->] IV_LANGU                       TYPE        SYST_LANGU
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD constructor.
     SET LANGUAGE iv_langu.
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Private Method ZUTS_CL_NOTIFICATION->CONVERT_TO_CSV_FORMAT
-* +-------------------------------------------------------------------------------------------------+
-* | [--->] IV_OUTPUT                      TYPE        STANDARD TABLE
-* | [<-()] RV_CONV                        TYPE        TRUXS_T_TEXT_DATA
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD convert_to_csv_format.
 
     CALL FUNCTION 'SAP_CONVERT_TO_TEX_FORMAT'
@@ -461,103 +435,87 @@ CLASS zuts_cl_notification IMPLEMENTATION.
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Public Method ZUTS_CL_NOTIFICATION->DOWNLOAD_DATA
-* +-------------------------------------------------------------------------------------------------+
-* | [--->] IV_KSCHL                       TYPE        KSCHL
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD download_data.
+*
+*    SELECT SINGLE file_path
+*      FROM zsd_forms_dnload
+*      INTO gv_fpath
+*      WHERE output_type = iv_kschl.
 
-    SELECT SINGLE file_path
-      FROM zsd_forms_dnload
-      INTO gv_fpath
-      WHERE output_type = iv_kschl.
-
-    IF gv_fpath IS NOT INITIAL.
-
-      gv_fpath = SWITCH #( iv_kschl
-                           WHEN 'ZTRI'
-                            THEN |{ gv_fpath }{ c_fname_import }{ gs_likp-vbeln }{ c_csv }|
-                           WHEN 'ZTRO'
-                             THEN |{ gv_fpath }{ c_fname_sales }{ gs_likp-vbeln }{ c_csv }| ).
-
-      gt_text = SWITCH #( iv_kschl
-                           WHEN 'ZTRI'
-                            THEN convert_to_csv_format( gt_output )
-                           WHEN 'ZTRO'
-                             THEN convert_to_csv_format( gt_outsales ) ).
-
-      OPEN DATASET gv_fpath FOR OUTPUT IN TEXT MODE ENCODING UTF-8.
-
-      IF sy-subrc EQ 0.
-
-        LOOP AT gt_text ASSIGNING FIELD-SYMBOL(<fs_l_wa>).
-          TRANSFER <fs_l_wa> TO gv_fpath.
-        ENDLOOP.
-        CLOSE DATASET gv_fpath.
-
-      ELSE.
-        return_message( ).
-      ENDIF.
-
-    ENDIF.
+*    IF gv_fpath IS NOT INITIAL.
+*
+*      gv_fpath = SWITCH #( iv_kschl
+*                           WHEN 'ZTRI'
+*                            THEN |{ gv_fpath }{ c_fname_import }{ gs_likp-vbeln }{ c_csv }|
+*                           WHEN 'ZTRO'
+*                             THEN |{ gv_fpath }{ c_fname_sales }{ gs_likp-vbeln }{ c_csv }| ).
+*
+*      gt_text = SWITCH #( iv_kschl
+*                           WHEN 'ZTRI'
+*                            THEN convert_to_csv_format( gt_output )
+*                           WHEN 'ZTRO'
+*                             THEN convert_to_csv_format( gt_outsales ) ).
+*
+*      OPEN DATASET gv_fpath FOR OUTPUT IN TEXT MODE ENCODING UTF-8.
+*
+*      IF sy-subrc EQ 0.
+*
+*        LOOP AT gt_text ASSIGNING FIELD-SYMBOL(<fs_l_wa>).
+*          TRANSFER <fs_l_wa> TO gv_fpath.
+*        ENDLOOP.
+*        CLOSE DATASET gv_fpath.
+*
+*      ELSE.
+*        return_message( ).
+*      ENDIF.
+*
+*    ENDIF.
 
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Public Method ZUTS_CL_NOTIFICATION->DOWNLOAD_DATA_PER_LINE
-* +-------------------------------------------------------------------------------------------------+
-* | [--->] IV_KSCHL                       TYPE        KSCHL
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD download_data_per_line.
-
-    SELECT SINGLE file_path
-      FROM zsd_forms_dnload
-      INTO gv_fpath
-      WHERE output_type = iv_kschl.
-
-    IF gv_fpath IS NOT INITIAL.
-
-      gt_text = SWITCH #( iv_kschl
-                           WHEN 'ZTRI'
-                            THEN convert_to_csv_format( gt_output )
-                           WHEN 'ZTRO'
-                             THEN convert_to_csv_format( gt_outsales ) ).
-
-      LOOP AT gt_text ASSIGNING FIELD-SYMBOL(<fs_l_wa>).
-
-        DATA(lv_path) = SWITCH #( iv_kschl
-                          WHEN 'ZTRI'
-                           THEN |{ gv_fpath }{ c_fname_import }{ gs_likp-vbeln }_{ sy-tabix }{ c_csv }|
-                          WHEN 'ZTRO'
-                            THEN |{ gv_fpath }{ c_fname_sales }{ gs_likp-vbeln }_{ sy-tabix }{ c_csv }| ).
-
-        OPEN DATASET lv_path FOR OUTPUT IN TEXT MODE ENCODING UTF-8.
-
-        IF sy-subrc EQ 0.
-
-          TRANSFER <fs_l_wa> TO lv_path.
-
-          CLOSE DATASET lv_path.
-
-        ELSE.
-          return_message( ).
-        ENDIF.
-        CLEAR: lv_path.
-      ENDLOOP.
-
-    ENDIF.
+*
+*    SELECT SINGLE file_path
+*      FROM zsd_forms_dnload
+*      INTO gv_fpath
+*      WHERE output_type = iv_kschl.
+*
+*    IF gv_fpath IS NOT INITIAL.
+*
+*      gt_text = SWITCH #( iv_kschl
+*                           WHEN 'ZTRI'
+*                            THEN convert_to_csv_format( gt_output )
+*                           WHEN 'ZTRO'
+*                             THEN convert_to_csv_format( gt_outsales ) ).
+*
+*      LOOP AT gt_text ASSIGNING FIELD-SYMBOL(<fs_l_wa>).
+*
+*        DATA(lv_path) = SWITCH #( iv_kschl
+*                          WHEN 'ZTRI'
+*                           THEN |{ gv_fpath }{ c_fname_import }{ gs_likp-vbeln }_{ sy-tabix }{ c_csv }|
+*                          WHEN 'ZTRO'
+*                            THEN |{ gv_fpath }{ c_fname_sales }{ gs_likp-vbeln }_{ sy-tabix }{ c_csv }| ).
+*
+*        OPEN DATASET lv_path FOR OUTPUT IN TEXT MODE ENCODING UTF-8.
+*
+*        IF sy-subrc EQ 0.
+*
+*          TRANSFER <fs_l_wa> TO lv_path.
+*
+*          CLOSE DATASET lv_path.
+*
+*        ELSE.
+*          return_message( ).
+*        ENDIF.
+*        CLEAR: lv_path.
+*      ENDLOOP.
+*
+*    ENDIF.
 
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Public Method ZUTS_CL_NOTIFICATION->GET_DELIVERY_DATA
-* +-------------------------------------------------------------------------------------------------+
-* | [--->] IV_VBELN                       TYPE        VBELN_VL
-* | [<-()] RV_RETCODE                     TYPE        SY-SUBRC
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD get_delivery_data.
 
     DATA(lv_materials) = check_material(
@@ -641,10 +599,6 @@ CLASS zuts_cl_notification IMPLEMENTATION.
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Public Method ZUTS_CL_NOTIFICATION->RETURN_MESSAGE
-* +-------------------------------------------------------------------------------------------------+
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD return_message.
 
     CALL FUNCTION 'NAST_PROTOCOL_UPDATE'

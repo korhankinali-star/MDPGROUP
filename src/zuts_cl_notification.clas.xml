@@ -1,17 +1,45 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
     <CLSNAME>ZUTS_CL_NOTIFICATION</CLSNAME>
-    <LANGU>E</LANGU>
-    <DESCRIPT>UTS Notification Download Class</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
     <UNICODE>X</UNICODE>
    </VSEOCLASS>
    <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CMPNAME>ADD_HEADER_DATA_ZTRI</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Add Header Data for Import Notification</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>ADD_HEADER_DATA_ZTRO</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Add Header Data for Sales Notification</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>BUILD_DATA_OUTPUT_ZTRI</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Build Import Notification Output Data</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>BUILD_DATA_OUTPUT_ZTRO</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Build Sales Notification Output Data</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>CHECK_MATERIAL</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Check Material CE Mark</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>CHECK_OUTPUT_ROUTINE</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Check Output Routine</DESCRIPT>
+    </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CMPNAME>CLASS_CONSTRUCTOR</CMPNAME>
      <LANGU>E</LANGU>
@@ -23,19 +51,9 @@
      <DESCRIPT>Constructor</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
-     <CMPNAME>GET_DELIVERY_DATA</CMPNAME>
+     <CMPNAME>CONVERT_TO_CSV_FORMAT</CMPNAME>
      <LANGU>E</LANGU>
-     <DESCRIPT>Get Delivery Data</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CMPNAME>BUILD_DATA_OUTPUT_ZTRO</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Build Sales Notification Output Data</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CMPNAME>BUILD_DATA_OUTPUT_ZTRI</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Build Import Notification Output Data</DESCRIPT>
+     <DESCRIPT>Convert Internal Table to CSV Format</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CMPNAME>DOWNLOAD_DATA</CMPNAME>
@@ -48,34 +66,9 @@
      <DESCRIPT>Download Data Per Line to CSV</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
-     <CMPNAME>RETURN_MESSAGE</CMPNAME>
+     <CMPNAME>GET_DELIVERY_DATA</CMPNAME>
      <LANGU>E</LANGU>
-     <DESCRIPT>Return Message via NAST Protocol</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CMPNAME>CHECK_OUTPUT_ROUTINE</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Check Output Routine</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CMPNAME>CHECK_MATERIAL</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Check Material CE Mark</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CMPNAME>ADD_HEADER_DATA_ZTRI</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Add Header Data for Import Notification</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CMPNAME>ADD_HEADER_DATA_ZTRO</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Add Header Data for Sales Notification</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CMPNAME>CONVERT_TO_CSV_FORMAT</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Convert Internal Table to CSV Format</DESCRIPT>
+     <DESCRIPT>Get Delivery Data</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CMPNAME>GS_LIKP</CMPNAME>
@@ -83,29 +76,9 @@
      <DESCRIPT>Delivery Header</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
-     <CMPNAME>GT_LIPS</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Delivery Items</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CMPNAME>GV_FPATH</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>File Path</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CMPNAME>GT_OUTPUT</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Import Notification Output Table</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
      <CMPNAME>GS_OUTPUT</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Import Notification Output Structure</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CMPNAME>GT_OUTSALES</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Sales Notification Output Table</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CMPNAME>GS_OUTSALES</CMPNAME>
@@ -113,9 +86,34 @@
      <DESCRIPT>Sales Notification Output Structure</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
+     <CMPNAME>GT_LIPS</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Delivery Items</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>GT_OUTPUT</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Import Notification Output Table</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>GT_OUTSALES</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Sales Notification Output Table</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>GV_FPATH</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>File Path</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
      <CMPNAME>GV_STCD1</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Tax Number 1</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>RETURN_MESSAGE</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Return Message via NAST Protocol</DESCRIPT>
     </SEOCOMPOTX>
    </DESCRIPTIONS>
   </asx:values>
