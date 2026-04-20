@@ -4,6 +4,8 @@
 *& Servis runner + PDF'ten alinan dummy veri saglayicisi
 *&   - LCL_DUMMY_DATA     : PDF'teki ornek JSON payload'larini saglar
 *&   - LCL_SERVICE_RUNNER : ZUTS_CL001 araciligiyla secilen servisi cagirir
+*&                         ve cevap JSON'unu parse edip ALV icin uygun
+*&                         alanlari doldurur.
 *&---------------------------------------------------------------------*
 
 *&---------------------------------------------------------------------*
@@ -22,12 +24,10 @@ ENDCLASS.
 CLASS lcl_dummy_data IMPLEMENTATION.
 
   METHOD get_urun_sorgulama_json.
-    " Ref: PDF 3.7.3 Urun Sorgulama Servisi Ornek Istek
     rv_json = `{ "UNO" : "048327885764" }`.
   ENDMETHOD.
 
   METHOD get_urun_kayit_json.
-    " Cevap yapisi baz alinarak olusturulmus ornek kayit JSON'u
     rv_json =
       `{`                                        &&
       `  "UNO": "1111111110317",`                &&
@@ -48,7 +48,6 @@ CLASS lcl_dummy_data IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_ithalat_json.
-    " Ref: PDF 3.1.2.3 Ithalat Bildirimi Ornek Istek (lot takip edilen urun)
     rv_json =
       `{`                                                                 &&
       `  "UNO": "1111111110058",`                                         &&
@@ -64,7 +63,6 @@ CLASS lcl_dummy_data IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_verme_json.
-    " Ref: PDF 3.1.4.3 Verme Bildirimi Ornek Istek
     rv_json =
       `{`                                  &&
       `  "UNO": "2451643000007",`          &&
@@ -78,7 +76,6 @@ CLASS lcl_dummy_data IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_alma_json.
-    " Ref: PDF 3.1.6.3 Alma Bildirimi Ornek Istek 2
     rv_json =
       `{`                            &&
       `  "UNO": "1111111110324",`    &&
@@ -89,7 +86,6 @@ CLASS lcl_dummy_data IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_stok_sorgulama_json.
-    " Ref: PDF 3.4.18.4 Stok Yapilabilir Tekil Urun Sorgula Ornek Istek
     rv_json = `{ "UNO" : "792461048126" }`.
   ENDMETHOD.
 
@@ -111,10 +107,16 @@ CLASS lcl_service_runner DEFINITION FINAL.
         http_status   TYPE i,
         success_flag  TYPE abap_bool,
         success_icon  TYPE icon_d,
-        request_json  TYPE string,
+        duration_ms   TYPE i,
+        " Parse edilmis response alanlari (ALV'de gosterilir)
+        sonuc_kodu    TYPE string,
+        sonuc_mesaji  TYPE string,
+        snc_id        TYPE string,
+        mesaj_tipi    TYPE string,
+        detay_sayisi  TYPE i,
+        " Ham response ve hata (gizli/opsiyonel)
         response_json TYPE string,
         error_msg     TYPE string,
-        duration_ms   TYPE i,
       END OF ty_run_result .
 
     TYPES:
@@ -134,14 +136,92 @@ CLASS lcl_service_runner DEFINITION FINAL.
         VALUE(rs_result) TYPE ty_run_result.
 
   PRIVATE SECTION.
+
     DATA mo_client TYPE REF TO zuts_cl001.
     DATA mv_token  TYPE string.
+
+*---------------------------------------------------------------------*
+*  RESPONSE PARSE TIPLERI
+*---------------------------------------------------------------------*
+
+    "! Urun Sorgulama / Urun Kayit cevap yapisi (camelCase)
+    TYPES:
+      BEGIN OF ty_urun_detay,
+        birincilurunnumarasi TYPE string,
+        markaadi             TYPE string,
+        uruntipi             TYPE string,
+        kayitdurumu          TYPE string,
+        ureticifirma         TYPE string,
+      END OF ty_urun_detay .
+    TYPES:
+      BEGIN OF ty_resp_urun,
+        sonuc         TYPE i,
+        sonucmesaji   TYPE string,
+        urundetaylist TYPE STANDARD TABLE OF ty_urun_detay WITH DEFAULT KEY,
+      END OF ty_resp_urun .
+
+    "! Bildirim servisleri cevap yapisi (upper-case)
+    TYPES:
+      BEGIN OF ty_msj_item,
+        met TYPE string,
+        kod TYPE string,
+        tip TYPE string,
+      END OF ty_msj_item .
+    TYPES:
+      BEGIN OF ty_resp_bildirim,
+        snc TYPE string,
+        msj TYPE STANDARD TABLE OF ty_msj_item WITH DEFAULT KEY,
+      END OF ty_resp_bildirim .
+
+    "! Stok Sorgulama cevap yapisi
+    TYPES:
+      BEGIN OF ty_stok_item,
+        uno TYPE string,
+        lno TYPE string,
+        sno TYPE string,
+        urt TYPE string,
+        skt TYPE string,
+      END OF ty_stok_item .
+    TYPES:
+      BEGIN OF ty_stok_snc,
+        lst TYPE STANDARD TABLE OF ty_stok_item WITH DEFAULT KEY,
+        off TYPE string,
+      END OF ty_stok_snc .
+    TYPES:
+      BEGIN OF ty_resp_stok,
+        snc TYPE ty_stok_snc,
+      END OF ty_resp_stok .
 
     METHODS build_dummy_req
       IMPORTING
         !iv_service_code TYPE string
       RETURNING
         VALUE(rv_json)   TYPE string.
+
+    METHODS parse_response
+      IMPORTING
+        !iv_service_code TYPE string
+        !iv_response     TYPE string
+      CHANGING
+        !cs_result       TYPE ty_run_result.
+
+    METHODS parse_urun_response
+      IMPORTING
+        !iv_response TYPE string
+      CHANGING
+        !cs_result   TYPE ty_run_result.
+
+    METHODS parse_bildirim_response
+      IMPORTING
+        !iv_response TYPE string
+      CHANGING
+        !cs_result   TYPE ty_run_result.
+
+    METHODS parse_stok_response
+      IMPORTING
+        !iv_response TYPE string
+      CHANGING
+        !cs_result   TYPE ty_run_result.
 
 ENDCLASS.
 
@@ -176,9 +256,113 @@ CLASS lcl_service_runner IMPLEMENTATION.
   ENDMETHOD.
 
 
+*======================================================================*
+*  RESPONSE PARSE - DISPATCHER
+*======================================================================*
+  METHOD parse_response.
+
+    IF iv_response IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    CASE iv_service_code.
+      WHEN 'URUN_SORGULAMA' OR 'URUN_KAYIT_GUNCELLE'.
+        parse_urun_response( EXPORTING iv_response = iv_response
+                             CHANGING  cs_result   = cs_result ).
+
+      WHEN 'ITHALAT_BILDIRIMI' OR 'VERME_BILDIRIMI' OR 'ALMA_BILDIRIMI'.
+        parse_bildirim_response( EXPORTING iv_response = iv_response
+                                 CHANGING  cs_result   = cs_result ).
+
+      WHEN 'STOK_SORGULAMA'.
+        parse_stok_response( EXPORTING iv_response = iv_response
+                             CHANGING  cs_result   = cs_result ).
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD parse_urun_response.
+
+    DATA ls_parsed TYPE ty_resp_urun.
+
+    TRY.
+        /ui2/cl_json=>deserialize(
+          EXPORTING json        = iv_response
+                    pretty_name = /ui2/cl_json=>pretty_mode-camel_case
+          CHANGING  data        = ls_parsed ).
+
+        cs_result-sonuc_kodu   = |{ ls_parsed-sonuc }|.
+        cs_result-sonuc_mesaji = ls_parsed-sonucmesaji.
+        cs_result-detay_sayisi = lines( ls_parsed-urundetaylist ).
+
+        IF cs_result-detay_sayisi > 0 AND cs_result-sonuc_mesaji IS INITIAL.
+          cs_result-sonuc_mesaji = |Urun bulundu ({ cs_result-detay_sayisi } adet)|.
+        ENDIF.
+
+      CATCH cx_root.
+        " Parse edilemedi - sorun yok, ham response yine saklaniyor
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD parse_bildirim_response.
+
+    DATA ls_parsed TYPE ty_resp_bildirim.
+
+    TRY.
+        /ui2/cl_json=>deserialize(
+          EXPORTING json = iv_response
+          CHANGING  data = ls_parsed ).
+
+        cs_result-snc_id = ls_parsed-snc.
+
+        IF lines( ls_parsed-msj ) > 0.
+          READ TABLE ls_parsed-msj INDEX 1 INTO DATA(ls_msj).
+          cs_result-sonuc_kodu   = ls_msj-kod.
+          cs_result-sonuc_mesaji = ls_msj-met.
+          cs_result-mesaj_tipi   = ls_msj-tip.
+          cs_result-detay_sayisi = lines( ls_parsed-msj ).
+        ENDIF.
+
+      CATCH cx_root.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD parse_stok_response.
+
+    DATA ls_parsed TYPE ty_resp_stok.
+
+    TRY.
+        /ui2/cl_json=>deserialize(
+          EXPORTING json = iv_response
+          CHANGING  data = ls_parsed ).
+
+        cs_result-detay_sayisi = lines( ls_parsed-snc-lst ).
+
+        IF cs_result-detay_sayisi > 0.
+          cs_result-sonuc_kodu   = 'OK'.
+          cs_result-sonuc_mesaji = |Stok kayitlari bulundu ({ cs_result-detay_sayisi } adet)|.
+        ELSE.
+          cs_result-sonuc_mesaji = 'Stok kaydi bulunamadi'.
+        ENDIF.
+
+      CATCH cx_root.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+*======================================================================*
+*  ANA METOD: RUN
+*======================================================================*
   METHOD run.
 
     DATA ls_resp TYPE zuts_cl001=>ty_response.
+    DATA lv_request_json TYPE string.
 
     GET RUN TIME FIELD DATA(lv_start).
 
@@ -211,7 +395,7 @@ CLASS lcl_service_runner IMPLEMENTATION.
     ENDCASE.
 
     IF iv_use_dummy = abap_true.
-      rs_result-request_json = build_dummy_req( iv_service_code ).
+      lv_request_json = build_dummy_req( iv_service_code ).
     ENDIF.
 
     IF mo_client IS NOT BOUND.
@@ -224,38 +408,38 @@ CLASS lcl_service_runner IMPLEMENTATION.
       WHEN 'URUN_SORGULAMA'.
         mo_client->urun_sorgulama(
           EXPORTING iv_token    = mv_token
-                    iv_raw_json = rs_result-request_json
+                    iv_raw_json = lv_request_json
           IMPORTING es_result   = ls_resp ).
 
       WHEN 'URUN_KAYIT_GUNCELLE'.
         mo_client->urun_kayit_guncelle(
           EXPORTING iv_token     = mv_token
                     iv_operation = 'KAYIT'
-                    iv_raw_json  = rs_result-request_json
+                    iv_raw_json  = lv_request_json
           IMPORTING es_result    = ls_resp ).
 
       WHEN 'ITHALAT_BILDIRIMI'.
         mo_client->ithalat_bildirimi(
           EXPORTING iv_token    = mv_token
-                    iv_raw_json = rs_result-request_json
+                    iv_raw_json = lv_request_json
           IMPORTING es_result   = ls_resp ).
 
       WHEN 'VERME_BILDIRIMI'.
         mo_client->verme_bildirimi(
           EXPORTING iv_token    = mv_token
-                    iv_raw_json = rs_result-request_json
+                    iv_raw_json = lv_request_json
           IMPORTING es_result   = ls_resp ).
 
       WHEN 'ALMA_BILDIRIMI'.
         mo_client->alma_bildirimi(
           EXPORTING iv_token    = mv_token
-                    iv_raw_json = rs_result-request_json
+                    iv_raw_json = lv_request_json
           IMPORTING es_result   = ls_resp ).
 
       WHEN 'STOK_SORGULAMA'.
         mo_client->stok_sorgulama(
           EXPORTING iv_token    = mv_token
-                    iv_raw_json = rs_result-request_json
+                    iv_raw_json = lv_request_json
           IMPORTING es_result   = ls_resp ).
     ENDCASE.
 
@@ -269,6 +453,11 @@ CLASS lcl_service_runner IMPLEMENTATION.
     rs_result-success_icon  = COND #( WHEN ls_resp-success_flag = abap_true
                                         THEN icon_led_green
                                         ELSE icon_led_red ).
+
+    " Response'u parse edip ALV alanlarini doldur
+    parse_response( EXPORTING iv_service_code = iv_service_code
+                              iv_response     = ls_resp-response
+                    CHANGING  cs_result       = rs_result ).
 
   ENDMETHOD.
 

@@ -3,9 +3,17 @@
 *&---------------------------------------------------------------------*
 *& Servis cagri sonuclarini SALV tablosu olarak goruntuler.
 *&
-*& Dikkat: CL_SALV_TABLE=>FACTORY, CHANGING parametresinde tipli bir
-*& tablo bekler. Bu yuzden display metodu generic STANDARD TABLE yerine
-*& LCL_SERVICE_RUNNER=>TT_RUN_RESULTS referans tipi alir.
+*& Gosterilen kolonlar:
+*&   - Durum ikonu, Servis adi, HTTP kodu, Cagri suresi
+*&   - Parse edilmis response alanlari (Sonuc kodu, mesaj, SNC ID,
+*&     mesaj tipi, detay sayisi)
+*&   - Endpoint, Hata mesaji
+*&
+*& Gizlenen kolonlar:
+*&   - SERVICE_CODE, SUCCESS_FLAG (teknik alanlar)
+*&   - RESPONSE_JSON (ham cevap - istenirse kullanici tarafindan ALV
+*&     yerlesiminden aktif edilebilir)
+*&   - Gonderilen istek (request) ALV'de yer almaz
 *&---------------------------------------------------------------------*
 
 CLASS lcl_alv_view DEFINITION FINAL.
@@ -29,6 +37,15 @@ CLASS lcl_alv_view DEFINITION FINAL.
     METHODS configure_settings
       IMPORTING
         !io_alv TYPE REF TO cl_salv_table.
+
+    METHODS set_column_text
+      IMPORTING
+        !io_cols   TYPE REF TO cl_salv_columns_table
+        !iv_name   TYPE lvc_fname
+        !iv_short  TYPE scrtext_s
+        !iv_medium TYPE scrtext_m
+        !iv_long   TYPE scrtext_l
+        !iv_hide   TYPE abap_bool DEFAULT abap_false.
 
 ENDCLASS.
 
@@ -85,10 +102,31 @@ CLASS lcl_alv_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD set_column_text.
+    DATA lo_col TYPE REF TO cl_salv_column_table.
+
+    TRY.
+        lo_col ?= io_cols->get_column( iv_name ).
+        IF lo_col IS NOT BOUND.
+          RETURN.
+        ENDIF.
+
+        IF iv_hide = abap_true.
+          lo_col->set_visible( abap_false ).
+          RETURN.
+        ENDIF.
+
+        lo_col->set_short_text(  iv_short  ).
+        lo_col->set_medium_text( iv_medium ).
+        lo_col->set_long_text(   iv_long   ).
+      CATCH cx_salv_not_found.
+    ENDTRY.
+  ENDMETHOD.
+
+
   METHOD configure_columns.
 
     DATA lo_cols TYPE REF TO cl_salv_columns_table.
-    DATA lo_col  TYPE REF TO cl_salv_column_table.
 
     lo_cols = io_alv->get_columns( ).
     IF lo_cols IS NOT BOUND.
@@ -97,81 +135,74 @@ CLASS lcl_alv_view IMPLEMENTATION.
 
     lo_cols->set_optimize( abap_true ).
 
-    " Durum ikonu
-    lo_col ?= lo_cols->get_column( 'SUCCESS_ICON' ).
-    IF lo_col IS BOUND.
-      lo_col->set_short_text( 'Durum' ).
-      lo_col->set_medium_text( 'Durum' ).
-      lo_col->set_long_text( 'Durum' ).
-    ENDIF.
+    " --- Gorunen kolonlar ---
+    set_column_text( io_cols = lo_cols iv_name = 'SUCCESS_ICON'
+                     iv_short = 'Durum'
+                     iv_medium = 'Durum'
+                     iv_long = 'Durum' ).
 
-    " Servis Adi
-    lo_col ?= lo_cols->get_column( 'SERVICE_NAME' ).
-    IF lo_col IS BOUND.
-      lo_col->set_short_text( 'Servis' ).
-      lo_col->set_medium_text( 'Servis' ).
-      lo_col->set_long_text( 'Servis Adi' ).
-    ENDIF.
+    set_column_text( io_cols = lo_cols iv_name = 'SERVICE_NAME'
+                     iv_short = 'Servis'
+                     iv_medium = 'Servis'
+                     iv_long = 'Servis Adi' ).
 
-    " Servis Kodu - gizle
-    lo_col ?= lo_cols->get_column( 'SERVICE_CODE' ).
-    IF lo_col IS BOUND.
-      lo_col->set_visible( abap_false ).
-    ENDIF.
+    set_column_text( io_cols = lo_cols iv_name = 'HTTP_STATUS'
+                     iv_short = 'HTTP'
+                     iv_medium = 'HTTP Kodu'
+                     iv_long = 'HTTP Durum Kodu' ).
 
-    " Endpoint
-    lo_col ?= lo_cols->get_column( 'ENDPOINT' ).
-    IF lo_col IS BOUND.
-      lo_col->set_short_text( 'Endpoint' ).
-      lo_col->set_medium_text( 'Endpoint' ).
-      lo_col->set_long_text( 'Endpoint URI' ).
-    ENDIF.
+    set_column_text( io_cols = lo_cols iv_name = 'DURATION_MS'
+                     iv_short = 'Sure ms'
+                     iv_medium = 'Sure (ms)'
+                     iv_long = 'Cagri Suresi (ms)' ).
 
-    " HTTP Status
-    lo_col ?= lo_cols->get_column( 'HTTP_STATUS' ).
-    IF lo_col IS BOUND.
-      lo_col->set_short_text( 'HTTP' ).
-      lo_col->set_medium_text( 'HTTP Kodu' ).
-      lo_col->set_long_text( 'HTTP Durum Kodu' ).
-    ENDIF.
+    set_column_text( io_cols = lo_cols iv_name = 'SONUC_KODU'
+                     iv_short = 'Sonuc'
+                     iv_medium = 'Sonuc Kodu'
+                     iv_long = 'Sonuc Kodu' ).
 
-    " Success flag - gizle (icon zaten goruntulenir)
-    lo_col ?= lo_cols->get_column( 'SUCCESS_FLAG' ).
-    IF lo_col IS BOUND.
-      lo_col->set_visible( abap_false ).
-    ENDIF.
+    set_column_text( io_cols = lo_cols iv_name = 'SONUC_MESAJI'
+                     iv_short = 'Mesaj'
+                     iv_medium = 'Sonuc Mesaji'
+                     iv_long = 'Sonuc Mesaji' ).
 
-    " Duration
-    lo_col ?= lo_cols->get_column( 'DURATION_MS' ).
-    IF lo_col IS BOUND.
-      lo_col->set_short_text( 'Sure ms' ).
-      lo_col->set_medium_text( 'Sure (ms)' ).
-      lo_col->set_long_text( 'Cagri Suresi (ms)' ).
-    ENDIF.
+    set_column_text( io_cols = lo_cols iv_name = 'SNC_ID'
+                     iv_short = 'SNC ID'
+                     iv_medium = 'Bildirim ID'
+                     iv_long = 'Bildirim ID (SNC)' ).
 
-    " Request JSON
-    lo_col ?= lo_cols->get_column( 'REQUEST_JSON' ).
-    IF lo_col IS BOUND.
-      lo_col->set_short_text( 'Istek' ).
-      lo_col->set_medium_text( 'Istek JSON' ).
-      lo_col->set_long_text( 'Istek JSON' ).
-    ENDIF.
+    set_column_text( io_cols = lo_cols iv_name = 'MESAJ_TIPI'
+                     iv_short = 'Tip'
+                     iv_medium = 'Mesaj Tipi'
+                     iv_long = 'Mesaj Tipi (BILGI/HATA)' ).
 
-    " Response JSON
-    lo_col ?= lo_cols->get_column( 'RESPONSE_JSON' ).
-    IF lo_col IS BOUND.
-      lo_col->set_short_text( 'Cevap' ).
-      lo_col->set_medium_text( 'Cevap JSON' ).
-      lo_col->set_long_text( 'Cevap JSON' ).
-    ENDIF.
+    set_column_text( io_cols = lo_cols iv_name = 'DETAY_SAYISI'
+                     iv_short = 'Detay'
+                     iv_medium = 'Detay Sayisi'
+                     iv_long = 'Donen Kayit Sayisi' ).
 
-    " Error Message
-    lo_col ?= lo_cols->get_column( 'ERROR_MSG' ).
-    IF lo_col IS BOUND.
-      lo_col->set_short_text( 'Hata' ).
-      lo_col->set_medium_text( 'Hata Mesaji' ).
-      lo_col->set_long_text( 'Hata Mesaji' ).
-    ENDIF.
+    set_column_text( io_cols = lo_cols iv_name = 'ERROR_MSG'
+                     iv_short = 'Hata'
+                     iv_medium = 'Hata Mesaji'
+                     iv_long = 'Hata Mesaji' ).
+
+    set_column_text( io_cols = lo_cols iv_name = 'ENDPOINT'
+                     iv_short = 'Endpoint'
+                     iv_medium = 'Endpoint'
+                     iv_long = 'Endpoint URI' ).
+
+    " --- Gizlenen kolonlar ---
+    set_column_text( io_cols = lo_cols iv_name = 'SERVICE_CODE'
+                     iv_short = '' iv_medium = '' iv_long = ''
+                     iv_hide = abap_true ).
+
+    set_column_text( io_cols = lo_cols iv_name = 'SUCCESS_FLAG'
+                     iv_short = '' iv_medium = '' iv_long = ''
+                     iv_hide = abap_true ).
+
+    set_column_text( io_cols = lo_cols iv_name = 'RESPONSE_JSON'
+                     iv_short = '' iv_medium = '' iv_long = ''
+                     iv_hide = abap_true ).
 
   ENDMETHOD.
 
