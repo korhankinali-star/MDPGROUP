@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_DTEL" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <DD04V>
+    <ROLLNAME>ZUTS_BEDEL</ROLLNAME>
+    <DDLANGUAGE>T</DDLANGUAGE>
+    <DATATYPE>CHAR</DATATYPE>
+    <LENG>000005</LENG>
+    <OUTPUTLEN>000005</OUTPUTLEN>
+    <DDTEXT>Bedelli / Bedelsiz (BEN: EVET/HAYIR)</DDTEXT>
+    <REPTEXT>Bedelli</REPTEXT>
+    <SCRTEXT_S>Bedel</SCRTEXT_S>
+    <SCRTEXT_M>Bedelli mi?</SCRTEXT_M>
+    <SCRTEXT_L>Bedelli / Bedelsiz (BEN)</SCRTEXT_L>
+    <HEADLEN>5</HEADLEN>
+    <SCRLEN1>5</SCRLEN1>
+    <SCRLEN2>5</SCRLEN2>
+    <SCRLEN3>5</SCRLEN3>
+   </DD04V>
+  </asx:values>
+ </asx:abap>
+</abapGit>
