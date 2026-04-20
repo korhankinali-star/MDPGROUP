@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>ZUTS_CL001</CLSNAME>
+    <LANGU>T</LANGU>
+    <DESCRIPT>UTS Web Servis Istemci Sinifi</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CMPNAME>CONSTRUCTOR</CMPNAME>
+     <LANGU>T</LANGU>
+     <DESCRIPT>Yapici Metot</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>URUN_SORGULAMA</CMPNAME>
+     <LANGU>T</LANGU>
+     <DESCRIPT>Urun Sorgulama Servisi</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>URUN_KAYIT_GUNCELLE</CMPNAME>
+     <LANGU>T</LANGU>
+     <DESCRIPT>Urun Kayit / Guncelleme Servisi</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>ITHALAT_BILDIRIMI</CMPNAME>
+     <LANGU>T</LANGU>
+     <DESCRIPT>Ithalat Bildirimi Servisi</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>VERME_BILDIRIMI</CMPNAME>
+     <LANGU>T</LANGU>
+     <DESCRIPT>Verme (Satis) Bildirimi Servisi</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>ALMA_BILDIRIMI</CMPNAME>
+     <LANGU>T</LANGU>
+     <DESCRIPT>Alma (Kabul) Bildirimi Servisi</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>STOK_SORGULAMA</CMPNAME>
+     <LANGU>T</LANGU>
+     <DESCRIPT>Stok Sorgulama Servisi</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>CALL_REST_SERVICE</CMPNAME>
+     <LANGU>T</LANGU>
+     <DESCRIPT>Ortak REST cagri altyapisi</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>SERIALIZE_TO_JSON</CMPNAME>
+     <LANGU>T</LANGU>
+     <DESCRIPT>Veriyi JSON olarak serilestirir</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>WRITE_LOG</CMPNAME>
+     <LANGU>T</LANGU>
+     <DESCRIPT>UTS log tablosuna kayit yazar</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>PREPARE_HTTP_CLIENT</CMPNAME>
+     <LANGU>T</LANGU>
+     <DESCRIPT>HTTP client hazirlama</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>
