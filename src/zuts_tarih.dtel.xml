@@ -1,22 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <abapGit version="v1.0.0" serializer="LCL_OBJECT_DTEL" serializer_version="v1.0.0">
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <DD04V>
     <ROLLNAME>ZUTS_TARIH</ROLLNAME>
     <DDLANGUAGE>T</DDLANGUAGE>
-    <DATATYPE>CHAR</DATATYPE>
-    <LENG>000013</LENG>
-    <OUTPUTLEN>000013</OUTPUTLEN>
+    <HEADLEN>13</HEADLEN>
+    <SCRLEN1>10</SCRLEN1>
+    <SCRLEN2>13</SCRLEN2>
+    <SCRLEN3>28</SCRLEN3>
     <DDTEXT>UTS Tarih Metni (YYYY-AA-GG)</DDTEXT>
     <REPTEXT>UTS Tarihi</REPTEXT>
     <SCRTEXT_S>Tarih</SCRTEXT_S>
     <SCRTEXT_M>UTS Tarihi</SCRTEXT_M>
     <SCRTEXT_L>UTS Tarih Metni (YYYY-AA-GG)</SCRTEXT_L>
-    <HEADLEN>13</HEADLEN>
-    <SCRLEN1>10</SCRLEN1>
-    <SCRLEN2>13</SCRLEN2>
-    <SCRLEN3>13</SCRLEN3>
+    <DTELMASTER>T</DTELMASTER>
+    <DATATYPE>CHAR</DATATYPE>
+    <LENG>000013</LENG>
+    <OUTPUTLEN>000013</OUTPUTLEN>
    </DD04V>
   </asx:values>
  </asx:abap>

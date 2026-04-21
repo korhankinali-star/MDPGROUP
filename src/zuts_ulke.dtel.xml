@@ -1,22 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <abapGit version="v1.0.0" serializer="LCL_OBJECT_DTEL" serializer_version="v1.0.0">
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <DD04V>
     <ROLLNAME>ZUTS_ULKE</ROLLNAME>
     <DDLANGUAGE>T</DDLANGUAGE>
-    <DATATYPE>CHAR</DATATYPE>
-    <LENG>000003</LENG>
-    <OUTPUTLEN>000003</OUTPUTLEN>
+    <HEADLEN>10</HEADLEN>
+    <SCRLEN1>10</SCRLEN1>
+    <SCRLEN2>10</SCRLEN2>
+    <SCRLEN3>20</SCRLEN3>
     <DDTEXT>Ulke Kodu (3 hane)</DDTEXT>
     <REPTEXT>Ulke Kodu</REPTEXT>
     <SCRTEXT_S>Ulke</SCRTEXT_S>
     <SCRTEXT_M>Ulke Kodu</SCRTEXT_M>
     <SCRTEXT_L>Ulke Kodu (3 hane)</SCRTEXT_L>
-    <HEADLEN>3</HEADLEN>
-    <SCRLEN1>3</SCRLEN1>
-    <SCRLEN2>3</SCRLEN2>
-    <SCRLEN3>3</SCRLEN3>
+    <DTELMASTER>T</DTELMASTER>
+    <DATATYPE>CHAR</DATATYPE>
+    <LENG>000003</LENG>
+    <OUTPUTLEN>000003</OUTPUTLEN>
    </DD04V>
   </asx:values>
  </asx:abap>

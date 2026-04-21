@@ -34,19 +34,23 @@ CLASS zuts_cl001 DEFINITION
     CONSTANTS:
       BEGIN OF c_env,
         prod TYPE string VALUE 'https://utsuygulama.saglik.gov.tr' ##NO_TEXT,
-        test TYPE string VALUE 'https://utstest.saglik.gov.tr' ##NO_TEXT,
+*        test TYPE string VALUE 'https://utstest.saglik.gov.tr' ##NO_TEXT,
+        test TYPE string VALUE 'https://saturn.usemip.com' ##NO_TEXT,
       END OF c_env .
 
     CONSTANTS:
       BEGIN OF c_uri,
-        urun_sorgulama      TYPE string VALUE '/UTS/rest/tibbiCihaz/urunSorgula' ##NO_TEXT,
-        urun_detay_sorgula  TYPE string VALUE '/UTS/rest/tibbiCihaz/tibbiCihazSorgula' ##NO_TEXT,
+        urun_sorgulama      TYPE string VALUE '/http/UTS/TekilStokSorgulama' ##NO_TEXT,
+*        urun_sorgulama      TYPE string VALUE '/UTS/rest/tibbiCihaz/urunSorgula' ##NO_TEXT,
+        urun_detay_sorgula  TYPE string VALUE '/http/UTS/UrunSorgulama' ##NO_TEXT,
         urun_kayit          TYPE string VALUE '/UTS/rest/tibbiCihaz/urunKayit' ##NO_TEXT,
         urun_guncelle       TYPE string VALUE '/UTS/rest/tibbiCihaz/urunGuncelle' ##NO_TEXT,
-        ithalat_bildirimi   TYPE string VALUE '/UTS/uh/rest/bildirim/ithalat/ekle' ##NO_TEXT,
-        verme_bildirimi     TYPE string VALUE '/UTS/uh/rest/bildirim/verme/ekle' ##NO_TEXT,
+        ithalat_bildirimi   TYPE string VALUE '/http/UTS/IthalatBildirimEkle' ##NO_TEXT,
+        verme_bildirimi     TYPE string VALUE '/http/UTS/VermeBildirimEkle' ##NO_TEXT,
+*        verme_bildirimi     TYPE string VALUE '/UTS/uh/rest/bildirim/verme/ekle' ##NO_TEXT,
         verme_essiz_kimlik  TYPE string VALUE '/UTS/uh/rest/bildirim/verme/ekle/essizKimlik' ##NO_TEXT,
-        alma_bildirimi      TYPE string VALUE '/UTS/uh/rest/bildirim/alma/ekle' ##NO_TEXT,
+        alma_bildirimi     TYPE string VALUE '/http/UTS/AlmaBildirimEkle' ##NO_TEXT,
+*        alma_bildirimi      TYPE string VALUE '/UTS/uh/rest/bildirim/alma/ekle' ##NO_TEXT,
         alma_essiz_kimlik   TYPE string VALUE '/UTS/uh/rest/bildirim/alma/ekle/essizKimlik' ##NO_TEXT,
         stok_sorgulama      TYPE string VALUE '/UTS/uh/rest/stokYapilabilirTekilUrun/sorgula' ##NO_TEXT,
       END OF c_uri .
@@ -229,7 +233,6 @@ CLASS zuts_cl001 DEFINITION
         !iv_raw_json TYPE string OPTIONAL
       EXPORTING
         !es_result   TYPE ty_response .
-
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -344,11 +347,9 @@ ENDCLASS.
 
 
 
-CLASS zuts_cl001 IMPLEMENTATION.
+CLASS ZUTS_CL001 IMPLEMENTATION.
 
-*======================================================================*
-*  CONSTRUCTOR
-*======================================================================*
+
   METHOD constructor.
     mv_dest     = iv_dest.
     mv_use_dest = iv_destination_mode.
@@ -356,9 +357,6 @@ CLASS zuts_cl001 IMPLEMENTATION.
   ENDMETHOD.
 
 
-*======================================================================*
-*  HTTP CLIENT HAZIRLIĞI
-*======================================================================*
   METHOD prepare_http_client.
     CLEAR rv_ok.
 
@@ -380,9 +378,6 @@ CLASS zuts_cl001 IMPLEMENTATION.
   ENDMETHOD.
 
 
-*======================================================================*
-*  ORTAK REST ÇAĞRI ALTYAPISI
-*======================================================================*
   METHOD call_rest_service.
 
     DATA lv_start TYPE i.
@@ -418,7 +413,10 @@ CLASS zuts_cl001 IMPLEMENTATION.
 
     mo_http->request->set_header_field( name = c_http-content_type  value = c_http-appl_json ).
     mo_http->request->set_header_field( name = c_http-accept        value = c_http-appl_json ).
-    mo_http->request->set_header_field( name = c_http-authorization value = |{ c_http-bearer }{ iv_token }| ).
+*    mo_http->request->set_header_field( name = c_http-authorization value = |{ c_http-bearer }{ iv_token }| ).
+    mo_http->authenticate(
+      username = 'gorkem.sabancelebi'
+      password = 'TB6x7R5Wxtw6lgdj' ).
 
     mo_http->request->set_cdata( iv_payload ).
 
@@ -462,9 +460,6 @@ CLASS zuts_cl001 IMPLEMENTATION.
   ENDMETHOD.
 
 
-*======================================================================*
-*  JSON SERIALIZE
-*======================================================================*
   METHOD serialize_to_json.
     TRY.
         rv_json = /ui2/cl_json=>serialize(
@@ -477,9 +472,6 @@ CLASS zuts_cl001 IMPLEMENTATION.
   ENDMETHOD.
 
 
-*======================================================================*
-*  LOGID ÜRETİMİ
-*======================================================================*
   METHOD generate_logid.
     TRY.
         rv_logid = cl_system_uuid=>create_uuid_c32_static( ).
@@ -489,9 +481,6 @@ CLASS zuts_cl001 IMPLEMENTATION.
   ENDMETHOD.
 
 
-*======================================================================*
-*  SERVİSE ÖZEL LOG YAZIMI (Dispatcher)
-*======================================================================*
   METHOD write_service_log.
 
     DATA lv_ts TYPE timestamp.
@@ -702,9 +691,6 @@ CLASS zuts_cl001 IMPLEMENTATION.
   ENDMETHOD.
 
 
-*======================================================================*
-*  1) ÜRÜN SORGULAMA SERVİSİ
-*======================================================================*
   METHOD urun_sorgulama.
 
     DATA(lv_json) = COND string(
@@ -720,9 +706,6 @@ CLASS zuts_cl001 IMPLEMENTATION.
   ENDMETHOD.
 
 
-*======================================================================*
-*  2) ÜRÜN KAYIT / GÜNCELLEME SERVİSİ
-*======================================================================*
   METHOD urun_kayit_guncelle.
 
     DATA(lv_uri) = COND string(
@@ -748,9 +731,6 @@ CLASS zuts_cl001 IMPLEMENTATION.
   ENDMETHOD.
 
 
-*======================================================================*
-*  3) İTHALAT BİLDİRİMİ SERVİSİ
-*======================================================================*
   METHOD ithalat_bildirimi.
 
     DATA(lv_json) = COND string(
@@ -766,9 +746,6 @@ CLASS zuts_cl001 IMPLEMENTATION.
   ENDMETHOD.
 
 
-*======================================================================*
-*  4) VERME (SATIŞ) BİLDİRİMİ SERVİSİ
-*======================================================================*
   METHOD verme_bildirimi.
 
     DATA(lv_uri) = COND string(
@@ -788,9 +765,6 @@ CLASS zuts_cl001 IMPLEMENTATION.
   ENDMETHOD.
 
 
-*======================================================================*
-*  5) ALMA (KABUL) BİLDİRİMİ SERVİSİ
-*======================================================================*
   METHOD alma_bildirimi.
 
     DATA(lv_uri) = COND string(
@@ -810,9 +784,6 @@ CLASS zuts_cl001 IMPLEMENTATION.
   ENDMETHOD.
 
 
-*======================================================================*
-*  6) STOK SORGULAMA SERVİSİ
-*======================================================================*
   METHOD stok_sorgulama.
 
     DATA(lv_json) = COND string(
@@ -826,5 +797,4 @@ CLASS zuts_cl001 IMPLEMENTATION.
                   iv_payload      = lv_json ).
 
   ENDMETHOD.
-
 ENDCLASS.
