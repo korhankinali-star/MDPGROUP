@@ -4,7 +4,7 @@
 *& Uygulama controller.
 *&   - Secim ekrani degerlerini okur
 *&   - lcl_service_runner'i orkestre eder
-*&   - lcl_alv_view ile sonucu gosterir
+*&   - Servis tipine gore uygun lcl_alv_view display metodunu cagirir
 *&---------------------------------------------------------------------*
 
 CLASS lcl_app DEFINITION FINAL.
@@ -68,12 +68,18 @@ CLASS lcl_app IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(ls_result) = lo_runner->run(
-                        iv_service_code = get_selected_service( )
-                        iv_use_dummy    = p_dummy ).
+    DATA ls_summary       TYPE lcl_service_runner=>ty_run_result.
+    DATA lt_urun_rows     TYPE lcl_service_runner=>tt_urun_rows.
+    DATA lt_bildirim_rows TYPE lcl_service_runner=>tt_bildirim_rows.
+    DATA lt_stok_rows     TYPE lcl_service_runner=>tt_stok_rows.
 
-    DATA lt_results TYPE lcl_service_runner=>tt_run_results.
-    APPEND ls_result TO lt_results.
+    lo_runner->run(
+      EXPORTING iv_service_code  = get_selected_service( )
+                iv_use_dummy     = p_dummy
+      IMPORTING es_summary       = ls_summary
+                et_urun_rows     = lt_urun_rows
+                et_bildirim_rows = lt_bildirim_rows
+                et_stok_rows     = lt_stok_rows ).
 
     DATA(lo_view) = NEW lcl_alv_view( ).
     IF lo_view IS NOT BOUND.
@@ -81,7 +87,25 @@ CLASS lcl_app IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    lo_view->display( CHANGING ct_results = lt_results ).
+    CASE ls_summary-view_type.
+      WHEN lcl_service_runner=>c_view-urun.
+        lo_view->display_urun(
+          EXPORTING is_summary = ls_summary
+          CHANGING  ct_rows    = lt_urun_rows ).
+
+      WHEN lcl_service_runner=>c_view-bildirim.
+        lo_view->display_bildirim(
+          EXPORTING is_summary = ls_summary
+          CHANGING  ct_rows    = lt_bildirim_rows ).
+
+      WHEN lcl_service_runner=>c_view-stok.
+        lo_view->display_stok(
+          EXPORTING is_summary = ls_summary
+          CHANGING  ct_rows    = lt_stok_rows ).
+
+      WHEN OTHERS.
+        MESSAGE |Tanimsiz view tipi: { ls_summary-view_type }| TYPE 'I' DISPLAY LIKE 'W'.
+    ENDCASE.
 
   ENDMETHOD.
 
