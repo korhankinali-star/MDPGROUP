@@ -274,7 +274,7 @@ CLASS lcl_alv_view IMPLEMENTATION.
           set_col( io_cols = lo_cols iv_name = 'URETICI_NO'
                    iv_short = 'Uret. No' iv_med = 'Uretici No' iv_long = 'Uretici Firma No (UIK)' ).
           set_col( io_cols = lo_cols iv_name = 'URETICI_UNVAN'
-                   iv_short = 'Uret. Unvan' iv_med = 'Uretici Unvan' iv_long = 'Uretici Firma Unvani' ).
+                   iv_short = 'Ur.Unvan' iv_med = 'Uretici Unvan' iv_long = 'Uretici Firma Unvani' ).
           set_col( io_cols = lo_cols iv_name = 'URETIM_TARIHI'
                    iv_short = 'URT' iv_med = 'Uretim Tarihi' iv_long = 'Uretim Tarihi' ).
           set_col( io_cols = lo_cols iv_name = 'SON_KULLANMA'
